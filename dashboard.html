@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — ReguGuard AI</title>
+  <meta name="description" content="Monitor your compliance score, risk levels, violations, and regulatory updates from the ReguGuard AI dashboard.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .score-ring-container {
+      position: relative;
+      width: 128px;
+      height: 128px;
+      margin: 0 auto 16px;
+      filter: drop-shadow(0 0 20px rgba(14,165,233,0.15));
+    }
+    .score-ring-bg, .score-ring-fill {
+      fill: none;
+      stroke-width: 7;
+      cx: 64;
+      cy: 64;
+      r: 54;
+    }
+    .score-ring-bg { stroke: rgba(14,165,233,0.08); }
+    .score-ring-fill {
+      stroke: url(#scoreGradient);
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: center;
+      transition: stroke-dashoffset 2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .score-ring-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .activity-item, .update-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      transition: background 0.2s;
+    }
+    .activity-item:hover, .update-item:hover {
+      background: rgba(255,255,255,0.01);
+      border-radius: 8px;
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+    .activity-item:last-child, .update-item:last-child { border-bottom: none; }
+    .activity-icon { font-size: 15px; padding-top: 2px; }
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+    }
+    .demo-bar {
+      background: linear-gradient(135deg, rgba(14,165,233,0.1), rgba(20,184,166,0.06));
+      border-bottom: 1px solid rgba(14,165,233,0.12);
+      padding: 8px 32px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--primary-300);
+      text-align: center;
+      display: none;
+    }
+    .demo-bar i { margin-right: 6px; }
+
+    /* Page entry animations */
+    .page-content > * {
+      animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .page-content > *:nth-child(1) { animation-delay: 0.05s; }
+    .page-content > *:nth-child(2) { animation-delay: 0.15s; }
+    .page-content > *:nth-child(3) { animation-delay: 0.25s; }
+    .page-content > *:nth-child(4) { animation-delay: 0.35s; }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">R</div>
+        <span class="sidebar-brand">Regu<span>Guard</span></span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Main</div>
+        <a href="dashboard.html" class="nav-item active">
+          <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+        <a href="compliance.html" class="nav-item">
+          <i class="fas fa-clipboard-check"></i> Compliance Check
+        </a>
+        <a href="reports.html" class="nav-item">
+          <i class="fas fa-file-invoice"></i> Reports
+          <span class="nav-badge">3</span>
+        </a>
+
+        <div class="nav-section-title">System</div>
+        <a href="settings.html" class="nav-item">
+          <i class="fas fa-gear"></i> Settings
+        </a>
+        <a href="#" class="nav-item" onclick="event.preventDefault(); Auth.signOut()">
+          <i class="fas fa-right-from-bracket"></i> Sign Out
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="user-avatar js-user-avatar">RG</div>
+          <div class="user-info">
+            <div class="user-name js-user-name">User</div>
+            <div class="user-role js-user-email">user@email.com</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Demo Mode Bar -->
+      <div class="demo-bar" id="demo-bar">
+        <i class="fas fa-flask"></i>
+        Demo Mode — Simulated data is displayed. Connect Firebase for live data.
+      </div>
+
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div>
+            <h1 class="top-bar-title">Dashboard</h1>
+            <p class="top-bar-subtitle">Overview of your compliance posture</p>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <div class="top-bar-btn" title="Search"><i class="fas fa-search"></i></div>
+          <div class="top-bar-btn" title="Notifications" style="position:relative">
+            <i class="fas fa-bell"></i>
+            <span class="notification-dot"></span>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+          <!-- Compliance Score Card (with ring) -->
+          <div class="stat-card primary" style="text-align:center;grid-row:span 2">
+            <div class="score-ring-container">
+              <svg width="128" height="128">
+                <defs>
+                  <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#818cf8" />
+                    <stop offset="100%" style="stop-color:#a78bfa" />
+                  </linearGradient>
+                </defs>
+                <circle class="score-ring-bg" />
+                <circle class="score-ring-fill" id="score-ring" stroke-dasharray="339.29" stroke-dashoffset="339.29" />
+              </svg>
+              <div class="score-ring-text">
+                <div id="compliance-score" style="font-size:36px;font-weight:800;color:#f1f5f9">—</div>
+                <div style="font-size:12px;color:#64748b">Score</div>
+              </div>
+            </div>
+            <div style="font-size:14px;font-weight:600;color:#94a3b8">Compliance Score</div>
+            <div class="stat-change up" style="margin-top:8px">
+              <i class="fas fa-arrow-up" style="font-size:10px"></i> +3.2% from last month
+            </div>
+          </div>
+
+          <div class="stat-card warning">
+            <div class="stat-icon warning"><i class="fas fa-shield-halved"></i></div>
+            <div id="risk-level" class="stat-value" style="font-size:28px;opacity:0.3">—</div>
+            <div class="stat-label">Risk Level</div>
+            <div class="stat-change down">
+              <i class="fas fa-arrow-down" style="font-size:10px"></i> Elevated this quarter
+            </div>
+          </div>
+
+          <div class="stat-card danger">
+            <div class="stat-icon danger"><i class="fas fa-triangle-exclamation"></i></div>
+            <div id="total-violations" class="stat-value" style="opacity:0.3">—</div>
+            <div class="stat-label">Total Violations</div>
+            <div class="stat-change down">
+              <i class="fas fa-arrow-up" style="font-size:10px"></i> +2 new violations
+            </div>
+          </div>
+
+          <div class="stat-card success">
+            <div class="stat-icon success"><i class="fas fa-file-shield"></i></div>
+            <div id="policies-monitored" class="stat-value" style="opacity:0.3">—</div>
+            <div class="stat-label">Policies Monitored</div>
+            <div class="stat-change up">
+              <i class="fas fa-arrow-up" style="font-size:10px"></i> +47 this month
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Compliance Trend</div>
+                <div class="chart-subtitle">12-month compliance score history</div>
+              </div>
+              <div class="badge badge-primary">Monthly</div>
+            </div>
+            <div style="height:260px">
+              <canvas id="compliance-trend-chart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Risk Breakdown</div>
+                <div class="chart-subtitle">Distribution by category</div>
+              </div>
+            </div>
+            <div style="height:260px">
+              <canvas id="risk-breakdown-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stacked Bar Chart -->
+        <div class="chart-card" style="margin-bottom:24px">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Category Compliance Overview</div>
+              <div class="chart-subtitle">Compliant vs. violations by regulatory domain</div>
+            </div>
+          </div>
+          <div style="height:280px">
+            <canvas id="category-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Bottom Section -->
+        <div class="bottom-grid">
+          <!-- Recent Activity -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Recent Activity</div>
+                <div class="chart-subtitle">Latest compliance events</div>
+              </div>
+              <a href="compliance.html" class="btn btn-sm btn-ghost" style="color:var(--primary-400)">View All</a>
+            </div>
+            <div id="recent-activity">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Regulation Updates -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Regulation Updates</div>
+                <div class="chart-subtitle">New and changed regulations</div>
+              </div>
+              <span class="badge badge-warning">4 New</span>
+            </div>
+            <div id="regulation-updates">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Risk Heatmap -->
+          <div class="chart-card" style="grid-column: 1 / -1">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Risk Heatmap</div>
+                <div class="chart-subtitle">Visual risk assessment across compliance domains</div>
+              </div>
+            </div>
+            <div class="heatmap-grid" id="risk-heatmap">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/compliance-engine.js"></script>
+  <script src="js/dashboard.js"></script>
+
+  <script>
+    // Show demo bar if in demo mode
+    if (typeof IS_DEMO_MODE !== 'undefined' && IS_DEMO_MODE) {
+      document.getElementById('demo-bar').style.display = 'block';
+    }
+
+    // Initialize auth & dashboard
+    Auth.init();
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        Dashboard.init();
+      }
+    });
+  </script>
+
+</body>
+</html>

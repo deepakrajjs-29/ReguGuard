@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — ReguGuard AI</title>
+  <meta name="description" content="View, generate, and download compliance assessment reports with ReguGuard AI.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .reports-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .report-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      transition: background 0.2s;
+    }
+    .report-row:hover {
+      background: rgba(255,255,255,0.02);
+    }
+    .report-row:last-child { border-bottom: none; }
+    .quick-analyze-box {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .report-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .report-stat-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .report-stat-card:hover {
+      border-color: rgba(255,255,255,0.1);
+      transform: translateY(-2px);
+    }
+    .report-stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: #f1f5f9;
+      letter-spacing: -0.03em;
+    }
+    .report-stat-label {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      background: var(--surface-900);
+      max-width: 320px;
+      width: 100%;
+    }
+    .search-bar input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #e2e8f0;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+    .search-bar input::placeholder { color: #475569; }
+    .search-bar i { color: #475569; font-size: 14px; }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #475569;
+    }
+    .reports-table-container {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .reports-table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">R</div>
+        <span class="sidebar-brand">Regu<span>Guard</span></span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Main</div>
+        <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="compliance.html" class="nav-item"><i class="fas fa-clipboard-check"></i> Compliance Check</a>
+        <a href="reports.html" class="nav-item active"><i class="fas fa-file-invoice"></i> Reports <span class="nav-badge">3</span></a>
+        <div class="nav-section-title">System</div>
+        <a href="settings.html" class="nav-item"><i class="fas fa-gear"></i> Settings</a>
+        <a href="#" class="nav-item" onclick="event.preventDefault(); Auth.signOut()"><i class="fas fa-right-from-bracket"></i> Sign Out</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="user-avatar js-user-avatar">RG</div>
+          <div class="user-info">
+            <div class="user-name js-user-name">User</div>
+            <div class="user-role js-user-email">user@email.com</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div>
+            <h1 class="top-bar-title">Reports</h1>
+            <p class="top-bar-subtitle">Generate and download compliance reports</p>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <div class="top-bar-btn" title="Notifications"><i class="fas fa-bell"></i><span class="notification-dot"></span></div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <!-- Stats -->
+        <div class="report-stats">
+          <div class="report-stat-card">
+            <div class="report-stat-value" id="stat-total-reports">0</div>
+            <div class="report-stat-label">Total Reports</div>
+          </div>
+          <div class="report-stat-card">
+            <div class="report-stat-value" style="color:var(--success-light)" id="stat-avg-score">—</div>
+            <div class="report-stat-label">Avg. Score</div>
+          </div>
+          <div class="report-stat-card">
+            <div class="report-stat-value" style="color:var(--danger-light)" id="stat-total-violations">0</div>
+            <div class="report-stat-label">Total Violations Found</div>
+          </div>
+          <div class="report-stat-card">
+            <div class="report-stat-value" style="color:var(--primary-400)" id="stat-this-month">0</div>
+            <div class="report-stat-label">This Month</div>
+          </div>
+        </div>
+
+        <!-- Quick Analyze -->
+        <div class="quick-analyze-box">
+          <h2 style="font-size:18px;font-weight:700;margin-bottom:4px;color:#f1f5f9">
+            <i class="fas fa-bolt" style="color:var(--warning);margin-right:8px"></i>
+            Quick Report Generator
+          </h2>
+          <p style="font-size:13px;color:#64748b;margin-bottom:16px">
+            Enter a policy description below to instantly analyze and generate a downloadable PDF report.
+          </p>
+          
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+            <div style="flex:1;min-width:200px">
+              <label class="input-label" for="report-company">Company Name</label>
+              <input type="text" class="input-field" id="report-company" placeholder="Acme Corp" value="">
+            </div>
+            <div style="flex:0 0 180px">
+              <label class="input-label" for="report-industry">Industry</label>
+              <select class="input-field" id="report-industry" style="cursor:pointer">
+                <option value="all">All Industries</option>
+                <option value="financial services">Financial Services</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="technology">Technology</option>
+                <option value="e-commerce">E-Commerce</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="report-policy">Policy Description</label>
+            <textarea class="input-field" id="report-policy" rows="5" placeholder="Describe your company's data handling, security, or compliance policies..."></textarea>
+          </div>
+
+          <div style="display:flex;gap:12px">
+            <button class="btn btn-primary" onclick="quickGenerate()" id="quick-gen-btn">
+              <i class="fas fa-file-pdf"></i> Analyze & Generate PDF
+            </button>
+            <button class="btn btn-secondary" onclick="loadQuickSample()">
+              <i class="fas fa-file-lines"></i> Load Sample
+            </button>
+          </div>
+        </div>
+
+        <!-- Report History -->
+        <div class="reports-table-container">
+          <div class="reports-table-header">
+            <div>
+              <h3 style="font-size:16px;font-weight:600;color:#f1f5f9">Report History</h3>
+              <p style="font-size:12px;color:#64748b;margin-top:2px">All previously generated compliance reports</p>
+            </div>
+            <div class="search-bar">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Search reports..." id="report-search" oninput="filterReports()">
+            </div>
+          </div>
+          <div id="report-history">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="report-loading" style="display:none">
+    <div class="spinner" style="width:56px;height:56px;border-width:4px"></div>
+    <div style="text-align:center">
+      <p style="color:#f1f5f9;font-size:16px;font-weight:600;margin-bottom:4px">Generating report...</p>
+      <p style="color:#64748b;font-size:13px">Compiling analysis and building PDF</p>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/compliance-engine.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/firestore-seed.js"></script>
+
+  <script>
+    Auth.init();
+    
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        Reports.init();
+        updateStats();
+      }
+    });
+
+    function updateStats() {
+      // Calculate stats from report history
+      const reports = [];
+      let totalViolations = 0;
+      let totalScore = 0;
+      let thisMonth = 0;
+      const now = new Date();
+
+      try {
+        const saved = localStorage.getItem('reguguard_reports');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          parsed.forEach(r => {
+            totalScore += r.score || 0;
+            totalViolations += r.violations || 0;
+            const rDate = new Date(r.generatedAt);
+            if (rDate.getMonth() === now.getMonth() && rDate.getFullYear() === now.getFullYear()) {
+              thisMonth++;
+            }
+          });
+          
+          document.getElementById('stat-total-reports').textContent = parsed.length;
+          document.getElementById('stat-avg-score').textContent = parsed.length > 0 ? Math.round(totalScore / parsed.length) + '%' : '—';
+          document.getElementById('stat-total-violations').textContent = totalViolations;
+          document.getElementById('stat-this-month').textContent = thisMonth;
+        }
+      } catch(e) {}
+    }
+
+    async function quickGenerate() {
+      const policy = document.getElementById('report-policy').value.trim();
+      const company = document.getElementById('report-company').value.trim() || 'Organization';
+      const industry = document.getElementById('report-industry').value;
+
+      if (!policy) {
+        Toast.show('Please enter a policy description.', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('quick-gen-btn');
+      const overlay = document.getElementById('report-loading');
+      btn.disabled = true;
+      overlay.style.display = 'flex';
+
+      // Simulate processing
+      await new Promise(r => setTimeout(r, 2200));
+
+      // Run analysis
+      const results = ComplianceEngine.analyzeCompliance(policy, { industry });
+      
+      // Generate report
+      const report = Reports.generateReport(results, company);
+
+      // Download PDF
+      Reports.downloadPDF(report);
+
+      // Save to Firestore
+      const user = Auth.getCurrentUser();
+      if (user) {
+        FirestoreSeed.saveReport(user.uid, report);
+        FirestoreSeed.logComplianceCheck(user.uid, results);
+      }
+
+      // Refresh UI
+      overlay.style.display = 'none';
+      btn.disabled = false;
+      Reports.init();
+      updateStats();
+    }
+
+    function loadQuickSample() {
+      document.getElementById('report-company').value = 'Acme Technologies Inc.';
+      document.getElementById('report-industry').value = 'technology';
+      document.getElementById('report-policy').value = `Acme Technologies stores customer personal data including names, emails, and payment information in a cloud database. Data is encrypted at rest but some legacy systems still use unencrypted connections. We share anonymized analytics data with third-party partners. Our data retention policy requires deletion after 24 months but enforcement is manual. Employee access is controlled via role-based permissions but MFA is only required for admin accounts. We have a documented incident response plan that is tested annually. Password requirements enforce 8-character minimum with complexity. We do not currently have a formal consent management platform for cookie tracking.`;
+      Toast.show('Sample policy loaded. Click "Analyze & Generate PDF" to create a report.', 'info');
+    }
+
+    function filterReports() {
+      const query = document.getElementById('report-search').value.toLowerCase();
+      const rows = document.querySelectorAll('.report-row');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(query) ? 'flex' : 'none';
+      });
+    }
+  </script>
+
+</body>
+</html>

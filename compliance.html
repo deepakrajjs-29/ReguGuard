@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compliance Checker — ReguGuard AI</title>
+  <meta name="description" content="Check your company policies against regulatory standards with ReguGuard AI's intelligent compliance analysis engine.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .compliance-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 1024px) {
+      .compliance-grid { grid-template-columns: 1fr; }
+    }
+    .analysis-panel {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+    .results-summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .summary-item {
+      text-align: center;
+      padding: 16px;
+      border-radius: 12px;
+      background: var(--surface-800);
+    }
+    .summary-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #f1f5f9;
+    }
+    .summary-label {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+    .filter-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .filter-select {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--glass-border);
+      background: var(--surface-900);
+      color: #e2e8f0;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+    }
+    .filter-select:focus { border-color: var(--primary-500); }
+    .results-container {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .copilot-section {
+      margin-top: 24px;
+    }
+    .sample-queries {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .sample-query {
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: var(--surface-800);
+      border: 1px solid var(--glass-border);
+      color: #94a3b8;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sample-query:hover {
+      background: rgba(14,165,233, 0.1);
+      border-color: var(--primary-500);
+      color: var(--primary-400);
+    }
+    .risk-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .risk-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .risk-meter {
+      height: 6px;
+      background: var(--surface-700);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+    .risk-meter-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">R</div>
+        <span class="sidebar-brand">Regu<span>Guard</span></span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Main</div>
+        <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="compliance.html" class="nav-item active"><i class="fas fa-clipboard-check"></i> Compliance Check</a>
+        <a href="reports.html" class="nav-item"><i class="fas fa-file-invoice"></i> Reports <span class="nav-badge">3</span></a>
+        <div class="nav-section-title">System</div>
+        <a href="settings.html" class="nav-item"><i class="fas fa-gear"></i> Settings</a>
+        <a href="#" class="nav-item" onclick="event.preventDefault(); Auth.signOut()"><i class="fas fa-right-from-bracket"></i> Sign Out</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="user-avatar js-user-avatar">RG</div>
+          <div class="user-info">
+            <div class="user-name js-user-name">User</div>
+            <div class="user-role js-user-email">user@email.com</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div>
+            <h1 class="top-bar-title">Compliance Checker</h1>
+            <p class="top-bar-subtitle">Analyze policies against regulatory standards</p>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <div class="top-bar-btn" title="Notifications"><i class="fas fa-bell"></i><span class="notification-dot"></span></div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="compliance-grid">
+          <!-- Left: Input Panel -->
+          <div>
+            <div class="analysis-panel">
+              <h2 style="font-size:18px;font-weight:700;margin-bottom:4px;color:#f1f5f9">
+                <i class="fas fa-clipboard-check" style="color:var(--primary-400);margin-right:8px"></i>
+                Policy Analyzer
+              </h2>
+              <p style="font-size:13px;color:#64748b;margin-bottom:20px">
+                Enter your company policies or data handling practices below. Our AI will analyze them against the latest regulations.
+              </p>
+
+              <!-- Filters -->
+              <div class="filter-row">
+                <select class="filter-select" id="filter-industry">
+                  <option value="all">All Industries</option>
+                  <option value="financial services">Financial Services</option>
+                  <option value="healthcare">Healthcare</option>
+                  <option value="technology">Technology</option>
+                  <option value="e-commerce">E-Commerce</option>
+                  <option value="manufacturing">Manufacturing</option>
+                </select>
+                <select class="filter-select" id="filter-region">
+                  <option value="all">All Regions</option>
+                  <option value="us">United States</option>
+                  <option value="eu">European Union</option>
+                  <option value="global">Global</option>
+                </select>
+              </div>
+
+              <!-- Input -->
+              <div class="input-group">
+                <label class="input-label" for="policy-input">Company Policy / Description</label>
+                <textarea class="input-field" id="policy-input" placeholder="Example: Our company stores customer personal data including names, emails, and phone numbers in a cloud database. We share this data with third-party analytics providers without explicit consent. Passwords are stored in plain text. We have no data retention policy and keep data indefinitely..." rows="8"></textarea>
+              </div>
+
+              <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <button class="btn btn-primary" id="analyze-btn" onclick="runAnalysis()">
+                  <i class="fas fa-magnifying-glass-chart"></i> Analyze Compliance
+                </button>
+                <button class="btn btn-secondary" onclick="loadSamplePolicy()">
+                  <i class="fas fa-file-lines"></i> Load Sample
+                </button>
+              </div>
+
+              <!-- Sample Policies -->
+              <div style="margin-top:20px">
+                <div style="font-size:12px;color:#64748b;margin-bottom:8px;font-weight:600">Quick Samples:</div>
+                <div class="sample-queries">
+                  <span class="sample-query" onclick="quickSample('privacy')">Data Privacy</span>
+                  <span class="sample-query" onclick="quickSample('payment')">Payment Processing</span>
+                  <span class="sample-query" onclick="quickSample('security')">Security Policy</span>
+                  <span class="sample-query" onclick="quickSample('healthcare')">Healthcare Data</span>
+                  <span class="sample-query" onclick="quickSample('financial')">Financial Records</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Copilot -->
+            <div class="analysis-panel copilot-section">
+              <h2 style="font-size:18px;font-weight:700;margin-bottom:4px;color:#f1f5f9">
+                <i class="fas fa-robot" style="color:var(--primary-400);margin-right:8px"></i>
+                AI Compliance Copilot
+              </h2>
+              <p style="font-size:13px;color:#64748b;margin-bottom:16px">
+                Ask any compliance question and get expert-level guidance instantly.
+              </p>
+
+              <div class="chat-container" id="copilot-chat">
+                <div class="chat-messages" id="chat-messages">
+                  <div class="chat-message ai">
+                    👋 Hello! I'm your AI Compliance Copilot. Ask me about GDPR, HIPAA, PCI DSS, AML, cybersecurity, or any regulatory topic. I'll provide detailed, actionable guidance.
+                  </div>
+                </div>
+                <div class="chat-input-area">
+                  <input type="text" id="copilot-input" placeholder="Ask about compliance..." onkeydown="if(event.key==='Enter')sendCopilotMessage()">
+                  <button class="btn btn-primary" onclick="sendCopilotMessage()" style="padding:12px 20px">
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="sample-queries" style="margin-top:12px">
+                <span class="sample-query" onclick="askCopilot('What GDPR requirements apply to my SaaS application?')">GDPR for SaaS</span>
+                <span class="sample-query" onclick="askCopilot('How do I implement proper encryption for customer data?')">Encryption Guide</span>
+                <span class="sample-query" onclick="askCopilot('What happens if we have a data breach? What are the notification requirements?')">Breach Response</span>
+                <span class="sample-query" onclick="askCopilot('What are the KYC requirements for a fintech startup?')">KYC Requirements</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Results Panel -->
+          <div>
+            <!-- Results Summary -->
+            <div id="results-summary-container" style="display:none">
+              <div class="results-summary">
+                <div class="summary-item">
+                  <div class="summary-value" id="result-score" style="color:var(--primary-400)">—</div>
+                  <div class="summary-label">SCORE</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-value" id="result-violations" style="color:var(--danger-light)">0</div>
+                  <div class="summary-label">VIOLATIONS</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-value" id="result-warnings" style="color:var(--warning-light)">0</div>
+                  <div class="summary-label">WARNINGS</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-value" id="result-compliant" style="color:var(--success-light)">0</div>
+                  <div class="summary-label">COMPLIANT</div>
+                </div>
+              </div>
+
+              <!-- Summary Text -->
+              <div class="analysis-panel" style="margin-bottom:16px">
+                <p id="result-summary" style="font-size:14px;color:#94a3b8;line-height:1.7"></p>
+                <div style="margin-top:12px;display:flex;gap:8px">
+                  <button class="btn btn-sm btn-primary" onclick="generateAndDownloadReport()">
+                    <i class="fas fa-file-pdf"></i> Generate Report
+                  </button>
+                  <button class="btn btn-sm btn-secondary" onclick="clearResults()">
+                    <i class="fas fa-refresh"></i> New Analysis
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Results List -->
+            <div class="results-container" id="results-container">
+              <div style="text-align:center;padding:60px 20px;color:#475569">
+                <div style="font-size:56px;margin-bottom:16px">🔍</div>
+                <p style="font-size:15px;color:#94a3b8;margin-bottom:4px">No analysis results yet</p>
+                <p style="font-size:13px">Enter your company policies and click "Analyze Compliance" to get started.</p>
+              </div>
+            </div>
+
+            <!-- Risk Detection Section -->
+            <div id="risk-section" style="display:none;margin-top:24px">
+              <h3 style="font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:4px">
+                <i class="fas fa-chart-area" style="color:var(--warning);margin-right:8px"></i>
+                Risk Detection Analysis
+              </h3>
+              <p style="font-size:12px;color:#64748b;margin-bottom:16px">Categorized risk breakdown from your compliance analysis</p>
+              <div class="risk-grid" id="risk-cards"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Loading overlay for analysis -->
+  <div class="loading-overlay" id="analysis-loading" style="display:none">
+    <div class="spinner" style="width:56px;height:56px;border-width:4px"></div>
+    <div style="text-align:center">
+      <p style="color:#f1f5f9;font-size:16px;font-weight:600;margin-bottom:4px" id="loading-text">Analyzing compliance...</p>
+      <p style="color:#64748b;font-size:13px">Scanning against 15+ regulatory frameworks</p>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/compliance-engine.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/firestore-seed.js"></script>
+
+  <script>
+    Auth.init();
+    let lastAnalysisResults = null;
+
+    // ---- Compliance Analysis ----
+    async function runAnalysis() {
+      const input = document.getElementById('policy-input').value.trim();
+      if (!input) {
+        Toast.show('Please enter your company policies to analyze.', 'warning');
+        return;
+      }
+
+      const industry = document.getElementById('filter-industry').value;
+      const region = document.getElementById('filter-region').value;
+
+      // Show loading
+      const overlay = document.getElementById('analysis-loading');
+      overlay.style.display = 'flex';
+
+      const loadingTexts = [
+        'Analyzing compliance...',
+        'Scanning regulatory frameworks...',
+        'Checking GDPR requirements...',
+        'Evaluating cybersecurity posture...',
+        'Assessing financial compliance...',
+        'Generating risk assessment...',
+        'Compiling results...'
+      ];
+
+      let textIdx = 0;
+      const textInterval = setInterval(() => {
+        textIdx = (textIdx + 1) % loadingTexts.length;
+        document.getElementById('loading-text').textContent = loadingTexts[textIdx];
+      }, 800);
+
+      // Simulate processing delay
+      await new Promise(r => setTimeout(r, 2800));
+      clearInterval(textInterval);
+
+      // Run analysis
+      const results = ComplianceEngine.analyzeCompliance(input, { industry, region });
+      lastAnalysisResults = results;
+
+      // Hide loading
+      overlay.style.display = 'none';
+
+      // Render results
+      _renderResults(results);
+      _renderRiskCards(results);
+
+      // Log to Firestore
+      const user = Auth.getCurrentUser();
+      if (user) {
+        FirestoreSeed.logComplianceCheck(user.uid, results);
+      }
+
+      Toast.show(`Analysis complete! Score: ${results.score}/100`, results.score >= 70 ? 'success' : 'warning');
+    }
+
+    function _renderResults(results) {
+      // Summary
+      document.getElementById('results-summary-container').style.display = 'block';
+      document.getElementById('result-score').textContent = results.score + '%';
+      document.getElementById('result-violations').textContent = results.violations;
+      document.getElementById('result-warnings').textContent = results.warnings;
+      document.getElementById('result-compliant').textContent = results.compliant;
+      document.getElementById('result-summary').textContent = results.summary;
+
+      // Results list
+      const container = document.getElementById('results-container');
+      
+      if (results.results.length === 0) {
+        container.innerHTML = `
+          <div class="compliance-result compliant" style="text-align:center">
+            <p style="font-size:16px;font-weight:600;color:var(--success-light)">✅ No issues detected</p>
+            <p style="font-size:13px;color:#94a3b8;margin-top:4px">Your policy appears compliant. Try a more detailed input for deeper analysis.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = results.results.map((item, i) => {
+        const statusClass = item.status;
+        const statusIcon = { violation: '❌', warning: '⚠️', compliant: '✅' }[item.status];
+        const severityBadge = {
+          critical: 'badge-danger',
+          high: 'badge-warning',
+          medium: 'badge-info',
+          low: 'badge-success'
+        }[item.severity];
+
+        return `
+          <div class="compliance-result ${statusClass}" style="animation-delay:${i * 0.1}s">
+            <div class="result-header">
+              <span class="result-icon">${statusIcon}</span>
+              <span class="result-title">${item.category}: ${item.title}</span>
+              <span class="badge ${severityBadge}" style="margin-left:auto">${item.severity.toUpperCase()}</span>
+            </div>
+            <div class="result-description">${item.explanation}</div>
+            ${item.recommendation ? `
+              <div style="margin-top:12px;padding:12px;background:rgba(14,165,233,0.05);border-radius:8px;border-left:3px solid var(--primary-500)">
+                <div style="font-size:11px;font-weight:600;color:var(--primary-400);margin-bottom:4px">RECOMMENDATION</div>
+                <div style="font-size:13px;color:#94a3b8;line-height:1.5">${item.recommendation}</div>
+              </div>
+            ` : ''}
+            <div class="result-meta">
+              <span class="result-meta-item"><i class="fas fa-gavel"></i> ${item.regulation}</span>
+              <span class="result-meta-item"><i class="fas fa-globe"></i> ${item.region}</span>
+              <span class="result-meta-item"><i class="fas fa-tag"></i> ${item.id}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function _renderRiskCards(results) {
+      const riskSection = document.getElementById('risk-section');
+      const riskCards = document.getElementById('risk-cards');
+      riskSection.style.display = 'block';
+
+      const risks = ComplianceEngine.generateRiskAnalysis(results);
+      
+      riskCards.innerHTML = Object.entries(risks).map(([category, data]) => {
+        const color = data.score >= 80 ? 'var(--success)' : data.score >= 60 ? 'var(--warning)' : 'var(--danger)';
+        const bgColor = data.score >= 80 ? 'rgba(16,185,129,0.8)' : data.score >= 60 ? 'rgba(245,158,11,0.8)' : 'rgba(239,68,68,0.8)';
+        
+        return `
+          <div class="risk-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <h4 style="font-size:14px;font-weight:600;color:#f1f5f9">${category}</h4>
+              <span style="font-size:20px;font-weight:800;color:${color}">${data.score}%</span>
+            </div>
+            <div style="display:flex;gap:16px;margin-top:12px">
+              <div>
+                <div style="font-size:11px;color:#64748b">Impact</div>
+                <div style="font-size:13px;font-weight:600;color:#e2e8f0">${data.impact}</div>
+              </div>
+              <div>
+                <div style="font-size:11px;color:#64748b">Probability</div>
+                <div style="font-size:13px;font-weight:600;color:#e2e8f0">${data.probability}</div>
+              </div>
+              <div>
+                <div style="font-size:11px;color:#64748b">Issues</div>
+                <div style="font-size:13px;font-weight:600;color:#e2e8f0">${data.items.length}</div>
+              </div>
+            </div>
+            <div class="risk-meter">
+              <div class="risk-meter-fill" style="width:${data.score}%;background:${bgColor}"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ---- AI Copilot ----
+    async function sendCopilotMessage() {
+      const input = document.getElementById('copilot-input');
+      const message = input.value.trim();
+      if (!message) return;
+
+      // Add user message
+      _addChatMessage(message, 'user');
+      input.value = '';
+
+      // Add typing indicator
+      const typingId = 'typing-' + Date.now();
+      const chatMessages = document.getElementById('chat-messages');
+      const typingEl = document.createElement('div');
+      typingEl.id = typingId;
+      typingEl.className = 'chat-message ai';
+      typingEl.innerHTML = '<div class="pulse-dot"><span></span><span></span><span></span></div>';
+      chatMessages.appendChild(typingEl);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      // Simulate AI thinking
+      await new Promise(r => setTimeout(r, 1500 + Math.random() * 1000));
+
+      // Get response
+      const response = ComplianceEngine.generateCopilotResponse(message);
+
+      // Remove typing indicator and add response
+      typingEl.remove();
+      _addChatMessage(response, 'ai');
+    }
+
+    function askCopilot(query) {
+      document.getElementById('copilot-input').value = query;
+      sendCopilotMessage();
+    }
+
+    function _addChatMessage(content, type) {
+      const chatMessages = document.getElementById('chat-messages');
+      const msgEl = document.createElement('div');
+      msgEl.className = `chat-message ${type}`;
+      
+      // Parse markdown-like formatting for AI messages
+      if (type === 'ai') {
+        content = content
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\n/g, '<br>')
+          .replace(/• /g, '<br>• ');
+      }
+      
+      msgEl.innerHTML = content;
+      chatMessages.appendChild(msgEl);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // ---- Sample Policies ----
+    const samplePolicies = {
+      privacy: `Our company collects customer personal data including names, emails, addresses, and phone numbers. We store all data in a cloud database without encryption. Customer data is shared with third-party marketing partners without explicit consent. We have no data retention policy and keep customer information indefinitely. There is no process for customers to request data deletion. We transfer data to servers in multiple countries without any data processing agreements.`,
+      payment: `Our e-commerce platform processes credit card payments directly. We store full card numbers and CVV codes in our database for recurring billing. Payment data is transmitted over the network using basic HTTP. We do not conduct regular security scans on our payment systems. Customer payment history is accessible to all company employees.`,
+      security: `Our company uses a single shared admin password for all system access. We have implemented two-factor authentication for email but not for critical systems. There is no formal incident response plan. Our software systems are running outdated versions that are no longer supported by vendors. We do not conduct regular vulnerability assessments or penetration testing.`,
+      healthcare: `Our clinic stores patient medical records in an electronic health record system. Health data is accessible to all staff members without role-based restrictions. We share patient information with insurance companies via unencrypted email. There is no audit trail for who accesses patient records. Our backup systems are not regularly tested.`,
+      financial: `Our financial institution processes customer transactions daily. We have basic KYC procedures but no enhanced due diligence for high-risk customers. Transaction monitoring is done manually by reviewing monthly reports. We do not screen against sanctions lists. Financial records are kept for 3 years. There is no formal AML compliance program.`
+    };
+
+    function loadSamplePolicy() {
+      document.getElementById('policy-input').value = samplePolicies.privacy;
+      Toast.show('Sample privacy policy loaded. Click "Analyze Compliance" to run analysis.', 'info');
+    }
+
+    function quickSample(type) {
+      document.getElementById('policy-input').value = samplePolicies[type] || samplePolicies.privacy;
+      Toast.show(`${type.charAt(0).toUpperCase() + type.slice(1)} sample loaded.`, 'info');
+    }
+
+    function clearResults() {
+      document.getElementById('results-summary-container').style.display = 'none';
+      document.getElementById('risk-section').style.display = 'none';
+      document.getElementById('results-container').innerHTML = `
+        <div style="text-align:center;padding:60px 20px;color:#475569">
+          <div style="font-size:56px;margin-bottom:16px">🔍</div>
+          <p style="font-size:15px;color:#94a3b8;margin-bottom:4px">No analysis results yet</p>
+          <p style="font-size:13px">Enter your company policies and click "Analyze Compliance" to get started.</p>
+        </div>
+      `;
+      document.getElementById('policy-input').value = '';
+      lastAnalysisResults = null;
+    }
+
+    // ---- Report Generation ----
+    function generateAndDownloadReport() {
+      if (!lastAnalysisResults) {
+        Toast.show('No analysis results to generate a report from.', 'warning');
+        return;
+      }
+      const report = Reports.generateReport(lastAnalysisResults, 'Organization');
+      Reports.downloadPDF(report);
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — ReguGuard AI</title>
+  <meta name="description" content="Sign in to your ReguGuard AI compliance dashboard.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .auth-page {
+      background: var(--surface-950);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated gradient mesh background */
+    .auth-mesh {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .auth-mesh .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: orbDrift 12s ease-in-out infinite;
+    }
+
+    .auth-mesh .orb-1 {
+      width: 400px; height: 400px;
+      top: -10%; left: -5%;
+      background: rgba(14,165,233,0.12);
+      animation-duration: 14s;
+    }
+
+    .auth-mesh .orb-2 {
+      width: 300px; height: 300px;
+      bottom: -10%; right: -5%;
+      background: rgba(20,184,166,0.08);
+      animation-duration: 18s;
+      animation-direction: reverse;
+    }
+
+    .auth-mesh .orb-3 {
+      width: 200px; height: 200px;
+      top: 50%; left: 60%;
+      background: rgba(59,130,246,0.06);
+      animation-duration: 16s;
+    }
+
+    @keyframes orbDrift {
+      0%, 100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(20px,-30px) scale(1.08); }
+      66% { transform: translate(-15px,20px) scale(0.95); }
+    }
+
+    /* Grid overlay */
+    .auth-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(14,165,233,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(14,165,233,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent);
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent);
+      pointer-events: none;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 2;
+      animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .auth-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .auth-logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--primary-500), var(--accent-600));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      color: white;
+      box-shadow: 0 4px 20px rgba(14,165,233,0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-logo-icon::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.2));
+    }
+
+    .auth-logo-text {
+      font-size: 22px;
+      font-weight: 800;
+      color: #f0f2f5;
+      letter-spacing: -0.03em;
+    }
+
+    .auth-heading {
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 24px;
+      font-weight: 800;
+      color: #f0f2f5;
+      letter-spacing: -0.03em;
+    }
+
+    .auth-subheading {
+      text-align: center;
+      font-size: 14px;
+      color: #475569;
+      margin-bottom: 28px;
+    }
+
+    .auth-form-box {
+      background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    /* Demo Banner */
+    .demo-banner {
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.03));
+      border: 1px solid rgba(245,158,11,0.12);
+      margin-bottom: 24px;
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .demo-banner i {
+      color: var(--warning);
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .demo-banner strong { color: var(--warning-light); }
+
+    /* Tab buttons */
+    .auth-tabs {
+      display: flex;
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--glass-border);
+      padding: 3px;
+      margin-bottom: 24px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 9px;
+      text-align: center;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+
+    .auth-tab.active {
+      background: linear-gradient(135deg, var(--primary-600), var(--primary-500));
+      color: white;
+      box-shadow: 0 2px 12px rgba(14,165,233,0.3);
+    }
+
+    /* Google button */
+    .social-btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--glass-border);
+      background: rgba(255,255,255,0.03);
+      color: #c8d0db;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+    }
+
+    .social-btn:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: var(--glass-border-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .social-btn img {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Divider */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 20px 0;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+    }
+
+    /* Form fields */
+    .form-field {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+
+    .form-input-wrap {
+      position: relative;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 11px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--glass-border);
+      background: rgba(255,255,255,0.02);
+      color: #e2e8f0;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary-500);
+      box-shadow: 0 0 0 3px rgba(14,165,233,0.12), 0 0 16px rgba(14,165,233,0.06);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .form-input::placeholder { color: #334155; }
+
+    .eye-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #475569;
+      cursor: pointer;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .eye-toggle:hover { color: #94a3b8; }
+
+    /* Submit */
+    .auth-submit {
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--primary-600), var(--primary-500));
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 16px rgba(14,165,233,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-submit::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .auth-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(14,165,233,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+
+    .auth-submit:hover::after { opacity: 1; }
+    .auth-submit:active { transform: translateY(0); }
+
+    /* Demo button */
+    .demo-login-btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: var(--radius-md);
+      background: transparent;
+      border: 1px dashed rgba(14,165,233,0.3);
+      color: var(--primary-400);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+    }
+
+    .demo-login-btn:hover {
+      background: rgba(14,165,233,0.06);
+      border-color: rgba(14,165,233,0.5);
+      transform: translateY(-1px);
+    }
+
+    /* Footer */
+    .auth-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #334155;
+    }
+
+    .auth-footer a {
+      color: var(--primary-400);
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .auth-footer a:hover { color: var(--primary-300); }
+
+    /* Error message */
+    .auth-error {
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.12);
+      color: var(--danger-light);
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-page">
+    <!-- Animated background -->
+    <div class="auth-mesh">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+    <div class="auth-grid"></div>
+
+    <div class="auth-card">
+      <!-- Logo -->
+      <div class="auth-logo">
+        <div class="auth-logo-icon">R</div>
+        <span class="auth-logo-text">Regu<span class="gradient-text">Guard</span></span>
+      </div>
+
+      <h1 class="auth-heading">Welcome Back</h1>
+      <p class="auth-subheading">Sign in to access your compliance dashboard</p>
+
+      <div class="auth-form-box">
+        <!-- Demo Banner -->
+        <div class="demo-banner" id="demo-banner" style="display:none">
+          <i class="fas fa-flask"></i>
+          <div><strong>Demo Mode Active</strong> — Firebase is not configured. You can sign in with any email/password to explore the full app.</div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+          <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+        </div>
+
+        <!-- Google -->
+        <button type="button" class="social-btn" onclick="showError('Google authentication is disabled in this environment.')">
+          <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.56c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.99 7.28-2.66l-3.56-2.77c-.99.66-2.25 1.05-3.72 1.05-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.42 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Continue with Google
+        </button>
+
+        <div class="auth-divider">or</div>
+
+        <!-- Error -->
+        <div class="auth-error" id="auth-error"></div>
+
+        <!-- Form -->
+        <form id="auth-form" onsubmit="handleFormSubmit(event)">
+          <div class="form-field" id="name-field" style="display:none">
+            <label class="form-label">Full Name</label>
+            <input class="form-input" id="signup-name" type="text" placeholder="Your full name">
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Email Address</label>
+            <input class="form-input" id="auth-email" type="email" placeholder="you@company.com" required autocomplete="email">
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Password</label>
+            <div class="form-input-wrap">
+              <input class="form-input" id="auth-password" type="password" placeholder="Enter your password" required autocomplete="current-password">
+              <button type="button" class="eye-toggle" onclick="togglePassword()">
+                <i class="fas fa-eye" id="eye-icon"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="auth-submit" id="submit-btn">
+            Sign In <i class="fas fa-arrow-right" style="font-size:13px"></i>
+          </button>
+
+          <button type="button" class="demo-login-btn" id="demo-btn" onclick="handleDemoLogin()" style="display:none">
+            <i class="fas fa-bolt"></i> Quick Demo Login — Explore Full App
+          </button>
+        </form>
+      </div>
+
+      <div class="auth-footer">
+        By continuing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    let currentTab = 'login';
+
+    // Check demo mode
+    if (typeof isDemoMode !== 'undefined' && isDemoMode) {
+      document.getElementById('demo-banner').style.display = 'flex';
+      document.getElementById('demo-btn').style.display = 'block';
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+      document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+      document.getElementById('name-field').style.display = tab === 'signup' ? 'block' : 'none';
+      document.getElementById('submit-btn').innerHTML = tab === 'login' 
+        ? 'Sign In <i class="fas fa-arrow-right" style="font-size:13px"></i>'
+        : 'Create Account <i class="fas fa-arrow-right" style="font-size:13px"></i>';
+      document.getElementById('auth-error').style.display = 'none';
+    }
+
+    function togglePassword() {
+      const input = document.getElementById('auth-password');
+      const icon = document.getElementById('eye-icon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+      } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('auth-error');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const btn = document.getElementById('submit-btn');
+      
+      if (!email || !password) {
+        showError('Please enter both email and password.');
+        return;
+      }
+
+      btn.innerHTML = '<span class="pulse-dot"><span></span><span></span><span></span></span>';
+      btn.disabled = true;
+
+      // Simulate a brief loading state, then purely redirect for visual demo
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 800);
+    }
+
+    function handleDemoLogin() {
+      const btn = document.getElementById('demo-btn');
+      btn.innerHTML = '<span class="pulse-dot"><span></span><span></span><span></span></span> Logging in...';
+      btn.disabled = true;
+      
+      // Pure visual demo mode redirect
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 500);
+    }
+  </script>
+
+</body>
+</html>
